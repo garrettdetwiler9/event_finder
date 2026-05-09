@@ -1,0 +1,17 @@
+{
+  "name": "event-finder",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "client": "npm run start --workspace=client",
+    "server": "npm run dev --workspace=server"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
