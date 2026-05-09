@@ -1,0 +1,43 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  },
+  "overrides": [
+    {
+      // Client — React Native + hooks rules
+      "files": ["client/**/*.{ts,tsx}"],
+      "plugins": ["react", "react-hooks", "react-native"],
+      "extends": [
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:react-native/all"
+      ],
+      "settings": {
+        "react": { "version": "detect" }
+      },
+      "rules": {
+        "react/react-in-jsx-scope": "off",
+        "react-native/no-raw-text": "off"
+      }
+    },
+    {
+      // Server — Node.js environment
+      "files": ["server/**/*.ts"],
+      "env": {
+        "node": true,
+        "es2022": true
+      }
+    }
+  ],
+  "ignorePatterns": ["dist/", "node_modules/", ".expo/", "android/", "ios/"]
+}
