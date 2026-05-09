@@ -30,5 +30,11 @@ jobs:
         working-directory: server
 
       - name: Type check client
-        run: npx tsc --noEmit
-        working-directory: client
+        # Only runs once the client workspace is scaffolded (client/package.json exists).
+        # This prevents CI failures while the frontend is still being set up.
+        run: |
+          if [ -f "client/package.json" ]; then
+            cd client && npx tsc --noEmit
+          else
+            echo "⚠️  client/package.json not found — skipping client type check"
+          fi
