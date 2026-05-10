@@ -41,3 +41,15 @@ export interface CreateUserData {
   displayName: string;
   accountType?: AccountType;
 }
+
+export interface CreateEventData {
+  title: string;
+  description: string;
+  category: EventCategory;
+  location: { type: 'Point'; coordinates: [number, number] };
+  address: string;
+  startTime: string;
+  endTime: string;
+  maxAttendees: number;
+  isPublic?: boolean;
+}

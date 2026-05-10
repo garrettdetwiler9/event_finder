@@ -26,7 +26,8 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\" -Recurse -Directory)",
       "Bash(Select-Object FullName)",
       "PowerShell(head -30)",
-      "Bash(xargs grep -l \"import.*Event\\\\|import.*User\\\\|from.*models\")"
+      "Bash(xargs grep -l \"import.*Event\\\\|import.*User\\\\|from.*models\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\\\\client\" -Recurse -File)"
     ]
   }
 }
