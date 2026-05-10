@@ -6,10 +6,7 @@
     "lib": ["ES2022"],
 
     // Input / output
-    // rootDir is set to the monorepo root so TypeScript can include shared/types
-    // (which lives outside server/src). outDir is still server/dist, so compiled
-    // output lands at dist/server/src/... — update the start script accordingly.
-    "rootDir": "../..",
+    "rootDir": "./src",
     "outDir": "./dist",
 
     // Interop — required for default imports (express, dotenv, etc.)
@@ -33,6 +30,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*.ts", "../../shared/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

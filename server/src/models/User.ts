@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import type { IUser as IUserResponse } from '../../../shared/types';
+import type { IUser as IUserResponse } from '../shared';
 
 // IUserResponse (from shared/types) is the API wire format — strings for IDs and dates.
 // IUser below is the Mongoose document type — ObjectId for refs, Date for timestamps.

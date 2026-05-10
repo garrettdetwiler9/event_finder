@@ -2,11 +2,11 @@
   "name": "server",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/server/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/server/src/index.js"
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "dotenv": "^16.4.0",

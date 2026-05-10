@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import type { IEvent as IEventResponse } from '../../../shared/types';
+import type { IEvent as IEventResponse } from '../shared';
 
 // IEventResponse (from shared/types) is the API wire format — strings for IDs and dates.
 // IEvent below is the Mongoose document type — ObjectId for refs, Date for timestamps.
