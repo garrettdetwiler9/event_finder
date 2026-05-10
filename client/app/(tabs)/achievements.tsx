@@ -11,7 +11,7 @@ import { Trophy, Star, Users, Calendar, Compass, Zap } from 'lucide-react-native
 import type { LucideProps } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { useAuthContext } from '@/context/AuthContext';
-import { getEvents, type Event } from '@/lib/api';
+import { getEvents, type Event, type UserProfile } from '@/lib/api';
 import { Colors } from '@/constants/Colors';
 
 interface Achievement {
@@ -107,12 +107,12 @@ export default function AchievementsScreen() {
   const myId = userProfile?._id ?? '';
 
   const hosted = events.filter((e: Event) => {
-    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as any)._id;
+    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as UserProfile)._id;
     return creatorId === myId;
   }).length;
 
   const attended = events.filter((e: Event) => {
-    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as any)._id;
+    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as UserProfile)._id;
     return creatorId !== myId && (e.attendees as string[]).includes(myId);
   }).length;
 
@@ -172,7 +172,8 @@ export default function AchievementsScreen() {
               <View
                 style={[
                   styles.iconCircle,
-                  { backgroundColor: achievement.unlocked ? achievement.color + '20' : '#f3f4f6' },
+                  // eslint-disable-next-line react-native/no-inline-styles
+                  { backgroundColor: achievement.unlocked ? achievement.color + '20' : Colors.lockedIconBg },
                 ]}
               >
                 <Icon
@@ -205,13 +206,13 @@ export default function AchievementsScreen() {
 const styles = StyleSheet.create({
   achievementCard: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     elevation: 2,
     flex: 1,
     minWidth: '45%',
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 56,
   },
-  headerTitle: { color: '#fff', fontSize: 24, fontWeight: '700' },
+  headerTitle: { color: Colors.white, fontSize: 24, fontWeight: '700' },
   iconCircle: {
     alignItems: 'center',
     borderRadius: 28,
@@ -262,27 +263,27 @@ const styles = StyleSheet.create({
   statLabel: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
   statValue: { color: Colors.textPrimary, fontSize: 22, fontWeight: '700' },
   statsRow: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     elevation: 2,
     flexDirection: 'row',
     marginBottom: 20,
     marginHorizontal: 16,
     paddingVertical: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
   },
   summaryCard: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 20,
     elevation: 3,
     gap: 4,
     margin: 16,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -290,11 +291,11 @@ const styles = StyleSheet.create({
   summaryCount: { color: Colors.textPrimary, fontSize: 36, fontWeight: '800' },
   summaryLabel: { color: Colors.textSecondary, fontSize: 14 },
   unlockedBadge: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: Colors.unlockedBadgeBg,
     borderRadius: 20,
     marginTop: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  unlockedBadgeText: { color: '#16a34a', fontSize: 11, fontWeight: '600' },
+  unlockedBadgeText: { color: Colors.unlockedBadgeText, fontSize: 11, fontWeight: '600' },
 });

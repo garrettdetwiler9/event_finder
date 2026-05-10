@@ -12,7 +12,7 @@ import {
 import { format } from 'date-fns';
 import { Calendar, MapPin, Users } from 'lucide-react-native';
 import { useAuthContext } from '@/context/AuthContext';
-import { getEvents, joinEvent, leaveEvent, type Event } from '@/lib/api';
+import { getEvents, joinEvent, leaveEvent, type Event, type UserProfile } from '@/lib/api';
 import { Colors } from '@/constants/Colors';
 
 const CATEGORIES = [
@@ -67,14 +67,16 @@ export default function DiscoverScreen() {
           return { ...e, attendees: next };
         })
       );
-    } catch {}
+    } catch {
+      // silently ignore — UI state stays as-is if join/leave fails
+    }
     setJoining(null);
   };
 
   const renderEvent = ({ item: event }: { item: Event }) => {
     const attendeeIds = event.attendees as string[];
     const creatorId =
-      typeof event.creator === 'string' ? event.creator : (event.creator as any)._id;
+      typeof event.creator === 'string' ? event.creator : (event.creator as UserProfile)._id;
     const isCreator = userProfile?._id === creatorId;
     const isAttending = userProfile ? attendeeIds.includes(userProfile._id) : false;
 
@@ -200,12 +202,12 @@ export default function DiscoverScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     elevation: 3,
     marginBottom: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -216,7 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryBadge: {
-    backgroundColor: '#f3e8ff',
+    backgroundColor: Colors.categoryBadgeBg,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -252,7 +254,7 @@ const styles = StyleSheet.create({
   },
   filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   filterChipText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '500' },
-  filterChipTextActive: { color: '#fff' },
+  filterChipTextActive: { color: Colors.white },
   filterContent: { paddingHorizontal: 16, paddingVertical: 10 },
   filterScroll: { maxHeight: 52 },
   header: {
@@ -261,14 +263,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 56,
   },
-  headerTitle: { color: '#fff', fontSize: 24, fontWeight: '700' },
+  headerTitle: { color: Colors.white, fontSize: 24, fontWeight: '700' },
   hostBadge: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: Colors.hostBadgeBg,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  hostBadgeText: { color: '#d97706', fontSize: 12, fontWeight: '600' },
+  hostBadgeText: { color: Colors.hostBadgeText, fontSize: 12, fontWeight: '600' },
   joinButton: {
     alignItems: 'center',
     backgroundColor: Colors.primary,
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 10,
   },
-  joinButtonText: { color: '#fff', fontWeight: '600' },
+  joinButtonText: { color: Colors.white, fontWeight: '600' },
   leaveButton: { backgroundColor: Colors.textSecondary },
   list: { padding: 16 },
   metaItem: { alignItems: 'center', flexDirection: 'row', gap: 4 },

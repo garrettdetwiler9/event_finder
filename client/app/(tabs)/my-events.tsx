@@ -22,6 +22,7 @@ import {
   getEvents,
   type CreateEventData,
   type Event,
+  type UserProfile,
 } from '@/lib/api';
 import { Colors } from '@/constants/Colors';
 
@@ -89,12 +90,12 @@ export default function MyEventsScreen() {
   const myId = userProfile?._id;
 
   const hosting = events.filter((e: Event) => {
-    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as any)._id;
+    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as UserProfile)._id;
     return creatorId === myId;
   });
 
   const attending = events.filter((e: Event) => {
-    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as any)._id;
+    const creatorId = typeof e.creator === 'string' ? e.creator : (e.creator as UserProfile)._id;
     return creatorId !== myId && (e.attendees as string[]).includes(myId ?? '');
   });
 
@@ -123,8 +124,8 @@ export default function MyEventsScreen() {
       setEvents((prev: Event[]) => [created, ...prev]);
       setShowModal(false);
       setForm({ title: '', description: '', category: 'social', address: '', maxAttendees: '20' });
-    } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Could not create event.');
+    } catch (err: unknown) {
+      Alert.alert('Error', err instanceof Error ? err.message : 'Could not create event.');
     } finally {
       setSubmitting(false);
     }
@@ -141,8 +142,8 @@ export default function MyEventsScreen() {
           try {
             await deleteEvent(event._id);
             setEvents((prev: Event[]) => prev.filter((e: Event) => e._id !== event._id));
-          } catch (err: any) {
-            Alert.alert('Error', err.message ?? 'Could not delete event.');
+          } catch (err: unknown) {
+            Alert.alert('Error', err instanceof Error ? err.message : 'Could not delete event.');
           } finally {
             setDeleting(null);
           }
@@ -370,12 +371,12 @@ export default function MyEventsScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     elevation: 3,
     marginBottom: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
   cardHeader: { flexDirection: 'row', gap: 8, marginBottom: 8 },
   cardTitle: { color: Colors.textPrimary, fontSize: 16, fontWeight: '700', marginBottom: 8 },
   categoryBadge: {
-    backgroundColor: '#f3e8ff',
+    backgroundColor: Colors.categoryBadgeBg,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipRow: { marginBottom: 16 },
   chipText: { color: Colors.textSecondary, fontSize: 13 },
-  chipTextActive: { color: '#fff' },
+  chipTextActive: { color: Colors.white },
   container: { flex: 1 },
   dateButton: {
     alignItems: 'center',
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'absolute',
     right: 24,
-    shadowColor: '#000',
+    shadowColor: Colors.shadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -450,14 +451,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 56,
   },
-  headerTitle: { color: '#fff', fontSize: 24, fontWeight: '700' },
+  headerTitle: { color: Colors.white, fontSize: 24, fontWeight: '700' },
   hostBadge: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: Colors.hostBadgeBg,
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  hostBadgeText: { color: '#d97706', fontSize: 12, fontWeight: '600' },
+  hostBadgeText: { color: Colors.hostBadgeText, fontSize: 12, fontWeight: '600' },
   input: {
     borderColor: Colors.border,
     borderRadius: 10,
@@ -483,17 +484,17 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: Colors.overlayDarker,
     flex: 1,
     justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
   },
-  modalTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  modalTitle: { color: Colors.white, fontSize: 20, fontWeight: '700' },
   sectionLabel: {
     color: Colors.textSecondary,
     fontSize: 13,
@@ -509,6 +510,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   submitButtonDisabled: { opacity: 0.6 },
-  submitButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  submitButtonText: { color: Colors.white, fontSize: 16, fontWeight: '700' },
   textArea: { minHeight: 80, textAlignVertical: 'top' },
 });

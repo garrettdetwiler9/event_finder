@@ -55,8 +55,9 @@ export default function OnboardingScreen() {
       // refreshProfile updates userProfile in AuthContext.
       // The routing effect in _layout.tsx detects userProfile !== null
       // and calls router.replace('/discover') automatically.
-    } catch (err: any) {
-      if (err.status === 409) {
+    } catch (err: unknown) {
+      const status = err instanceof Error ? (err as Error & { status?: number }).status : undefined;
+      if (status === 409) {
         setError('That username is already taken. Please choose another.');
       } else {
         setError('Something went wrong. Please try again.');

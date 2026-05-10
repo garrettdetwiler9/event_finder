@@ -26,11 +26,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await getMe();
       setUserProfile(profile);
-    } catch (err: any) {
-      if (err.status === 404) {
+    } catch (err: unknown) {
+      if (err instanceof Error && (err as Error & { status?: number }).status === 404) {
         setUserProfile(null);
       } else {
-        console.warn('Failed to fetch user profile:', err.message);
+        console.warn('Failed to fetch user profile:', err instanceof Error ? err.message : String(err));
       }
     }
   }, []);
