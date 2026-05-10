@@ -10,16 +10,18 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { createUserProfile } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/Colors';
+import { format } from 'date-fns';
 
 type AccountType = 'user' | 'business' | 'org';
 
-const ACCOUNT_TYPES: { value: AccountType; label: string }[] = [
-  { value: 'user', label: 'Personal' },
-  { value: 'business', label: 'Business' },
-  { value: 'org', label: 'Organization' },
+const ACCOUNT_TYPES: { value: AccountType; label: string; desc: string }[] = [
+  { value: 'user', label: 'Personal', desc: 'Student or individual' },
+  { value: 'business', label: 'Business', desc: 'Local shop or venue' },
+  { value: 'org', label: 'Organization', desc: 'Club or non-profit' },
 ];
 
 export default function OnboardingScreen() {
@@ -27,6 +29,8 @@ export default function OnboardingScreen() {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [accountType, setAccountType] = useState<AccountType>('user');
+  const [birthdate, setBirthdate] = useState<Date | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,8 +43,8 @@ export default function OnboardingScreen() {
       setError('Username must be at least 3 characters.');
       return;
     }
-    if (username.trim().length > 30) {
-      setError('Username must be 30 characters or fewer.');
+    if (accountType === 'user' && !birthdate) {
+      setError('Birthdate is required for personal accounts.');
       return;
     }
     setError('');
@@ -50,11 +54,9 @@ export default function OnboardingScreen() {
         username: username.trim().toLowerCase(),
         displayName: displayName.trim(),
         accountType,
+        birthdate: birthdate ? birthdate.toISOString() : undefined,
       });
       await refreshProfile();
-      // refreshProfile updates userProfile in AuthContext.
-      // The routing effect in _layout.tsx detects userProfile !== null
-      // and calls router.replace('/discover') automatically.
     } catch (err: any) {
       if (err.status === 409) {
         setError('That username is already taken. Please choose another.');
@@ -73,7 +75,7 @@ export default function OnboardingScreen() {
     >
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Set up your profile</Text>
-        <Text style={styles.subtitle}>Choose a username to get started</Text>
+        <Text style={styles.subtitle}>Join the Davis events community</Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -107,14 +109,35 @@ export default function OnboardingScreen() {
               style={[styles.segment, accountType === type.value && styles.segmentActive]}
               onPress={() => setAccountType(type.value)}
             >
-              <Text
-                style={[styles.segmentText, accountType === type.value && styles.segmentTextActive]}
-              >
+              <Text style={[styles.segmentText, accountType === type.value && styles.segmentTextActive]}>
                 {type.label}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
+
+        {accountType === 'user' && (
+          <>
+            <Text style={styles.label}>Birthdate</Text>
+            <TouchableOpacity style={styles.input} onPress={() => setShowPicker(true)}>
+              <Text style={{ color: birthdate ? Colors.textPrimary : Colors.textPlaceholder, fontSize: 15 }}>
+                {birthdate ? format(birthdate, 'MMMM d, yyyy') : 'Select your birthdate'}
+              </Text>
+            </TouchableOpacity>
+            {showPicker && (
+              <DateTimePicker
+                value={birthdate ?? new Date(2000, 0, 1)}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_e, date) => {
+                  setShowPicker(Platform.OS === 'ios');
+                  if (date) setBirthdate(date);
+                }}
+              />
+            )}
+          </>
+        )}
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
           {loading ? (
@@ -136,26 +159,10 @@ const styles = StyleSheet.create({
     marginTop: 24,
     paddingVertical: 14,
   },
-  buttonText: {
-    color: Colors.white,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  container: {
-    backgroundColor: Colors.white,
-    flex: 1,
-  },
-  error: {
-    color: Colors.error,
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  inner: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
+  buttonText: { color: Colors.white, fontSize: 15, fontWeight: '600' },
+  container: { backgroundColor: Colors.white, flex: 1 },
+  error: { color: Colors.error, fontSize: 14, marginBottom: 12 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 40 },
   input: {
     borderColor: Colors.border,
     borderRadius: 10,
@@ -165,6 +172,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    justifyContent: 'center',
   },
   label: {
     color: Colors.textSecondary,
@@ -181,33 +189,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
   },
-  segmentActive: {
-    backgroundColor: Colors.brand,
-    borderColor: Colors.brand,
-  },
-  segmentText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  segmentTextActive: {
-    color: Colors.white,
-    fontWeight: '600',
-  },
-  segmented: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  subtitle: {
-    color: Colors.textSecondary,
-    fontSize: 15,
-    marginBottom: 32,
-  },
-  title: {
-    color: Colors.textPrimary,
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
+  segmentActive: { backgroundColor: Colors.brand, borderColor: Colors.brand },
+  segmentText: { color: Colors.textSecondary, fontSize: 13, fontWeight: '500' },
+  segmentTextActive: { color: Colors.white, fontWeight: '600' },
+  segmented: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  subtitle: { color: Colors.textSecondary, fontSize: 15, marginBottom: 32 },
+  title: { color: Colors.textPrimary, fontSize: 28, fontWeight: '700', marginBottom: 8 },
 });

@@ -1,62 +1,52 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-// TypeScript interface — describes the shape of a User document
+export interface IUserInvite {
+  eventId: mongoose.Types.ObjectId;
+  invitedBy: mongoose.Types.ObjectId;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: Date;
+}
+
 export interface IUser extends Document {
-  firebaseUid: string; // Links this MongoDB record to the Firebase Auth user
+  firebaseUid: string;
   username: string;
   displayName: string;
-  avatarUrl?: string; // Optional profile picture URL
+  avatarUrl?: string;
   accountType: 'user' | 'business' | 'org';
-  verified: boolean; // For business/org badge
-  friends: mongoose.Types.ObjectId[]; // References to other User documents
+  verified: boolean;
+  birthdate?: Date;
+  interests: string[];
+  friends: mongoose.Types.ObjectId[];
+  checkins: mongoose.Types.ObjectId[];
+  invites: IUserInvite[];
+  pushToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Mongoose schema — enforces the shape when saving to MongoDB
 const UserSchema = new Schema<IUser>(
   {
-    firebaseUid: {
-      type: String,
-      required: true,
-      unique: true, // No two users can share the same Firebase UID
-    },
-    username: {
-      type: String,
-      required: true,
-      unique: true,
-      trim: true,
-      minlength: 3,
-      maxlength: 30,
-    },
-    displayName: {
-      type: String,
-      required: true,
-      trim: true,
-      maxlength: 50,
-    },
-    avatarUrl: {
-      type: String,
-    },
-    accountType: {
-      type: String,
-      enum: ['user', 'business', 'org'],
-      default: 'user',
-    },
-    verified: {
-      type: Boolean,
-      default: false,
-    },
-    friends: [
+    firebaseUid: { type: String, required: true, unique: true },
+    username: { type: String, required: true, unique: true, trim: true, minlength: 3, maxlength: 30 },
+    displayName: { type: String, required: true, trim: true, maxlength: 50 },
+    avatarUrl: { type: String },
+    accountType: { type: String, enum: ['user', 'business', 'org'], default: 'user' },
+    verified: { type: Boolean, default: false },
+    birthdate: { type: Date },
+    interests: [{ type: String }],
+    friends: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    checkins: [{ type: Schema.Types.ObjectId, ref: 'Event' }],
+    invites: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'User', // Tells Mongoose this references the User collection
+        eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
+        invitedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        status: { type: String, enum: ['pending', 'accepted', 'declined'], default: 'pending' },
+        createdAt: { type: Date, default: Date.now },
       },
     ],
+    pushToken: { type: String },
   },
-  {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
-  }
+  { timestamps: true }
 );
 
 export default mongoose.model<IUser>('User', UserSchema);
