@@ -12,6 +12,7 @@ import {
 import { Link, router } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { Colors } from '@/constants/Colors';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -29,7 +30,7 @@ export default function LoginScreen() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.replace('/(tabs)');
-    } catch (e: any) {
+    } catch {
       setError('Invalid email or password.');
     } finally {
       setLoading(false);
@@ -50,7 +51,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={Colors.textPlaceholder}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -59,7 +60,7 @@ export default function LoginScreen() {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={Colors.textPlaceholder}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -67,14 +68,14 @@ export default function LoginScreen() {
 
         <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors.white} />
           ) : (
             <Text style={styles.buttonText}>Sign In</Text>
           )}
         </TouchableOpacity>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={styles.footerText}>{"Don't have an account? "}</Text>
           <Link href="/(auth)/signup" asChild>
             <TouchableOpacity>
               <Text style={styles.link}>Sign Up</Text>
@@ -87,52 +88,26 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  inner: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginBottom: 32,
-  },
-  error: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#111827',
-    marginBottom: 12,
-  },
   button: {
-    backgroundColor: '#4f46e5',
-    borderRadius: 10,
-    paddingVertical: 14,
     alignItems: 'center',
+    backgroundColor: Colors.brand,
+    borderRadius: 10,
     marginTop: 8,
+    paddingVertical: 14,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.white,
     fontSize: 15,
     fontWeight: '600',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  error: {
+    color: Colors.error,
+    fontSize: 14,
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
@@ -140,12 +115,38 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#6b7280',
+    color: Colors.textSecondary,
     fontSize: 14,
   },
+  inner: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  input: {
+    borderColor: Colors.border,
+    borderRadius: 10,
+    borderWidth: 1,
+    color: Colors.textPrimary,
+    fontSize: 15,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
   link: {
-    color: '#4f46e5',
+    color: Colors.brand,
     fontSize: 14,
     fontWeight: '600',
+  },
+  subtitle: {
+    color: Colors.textSecondary,
+    fontSize: 15,
+    marginBottom: 32,
+  },
+  title: {
+    color: Colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 8,
   },
 });

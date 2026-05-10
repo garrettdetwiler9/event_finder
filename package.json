@@ -8,12 +8,15 @@
     "shared"
   ],
   "scripts": {
-    "client": "npm run start --workspace=client",
+    "client": "cd client && expo start",
     "server": "npm run dev --workspace=server",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "android": "cd client && expo start --android",
+    "ios": "cd client && expo start --ios",
+    "tunnel": "cd client && expo start --tunnel --clear"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -38,5 +41,10 @@
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
     "prettier": "^3.2.0"
+  },
+  "dependencies": {
+    "expo": "~54.0.34",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
   }
 }

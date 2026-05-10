@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from '@/lib/firebase';
+import { Colors } from '@/constants/Colors';
 
 export default function SignupScreen() {
   const [email, setEmail] = useState('');
@@ -39,12 +41,11 @@ export default function SignupScreen() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       router.replace('/(tabs)');
-    } catch (e: any) {
-      console.log('signup error:', e.code, e.message);
-      if (e.code === 'auth/email-already-in-use') {
+    } catch (e) {
+      if (e instanceof FirebaseError && e.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.');
       } else {
-        setError(`${e.code ?? 'unknown'}: ${e.message ?? 'Please try again.'}`);
+        setError('Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -65,7 +66,7 @@ export default function SignupScreen() {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={Colors.textPlaceholder}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -74,7 +75,7 @@ export default function SignupScreen() {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={Colors.textPlaceholder}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -82,7 +83,7 @@ export default function SignupScreen() {
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={Colors.textPlaceholder}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
@@ -90,7 +91,7 @@ export default function SignupScreen() {
 
         <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors.white} />
           ) : (
             <Text style={styles.buttonText}>Create Account</Text>
           )}
@@ -110,53 +111,26 @@ export default function SignupScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  inner: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#6b7280',
-    marginBottom: 32,
-  },
-  error: {
-    color: '#ef4444',
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#111827',
-    marginBottom: 12,
-  },
   button: {
-    backgroundColor: '#4f46e5',
-    borderRadius: 10,
-    paddingVertical: 14,
     alignItems: 'center',
+    backgroundColor: Colors.brand,
+    borderRadius: 10,
     marginTop: 8,
+    paddingVertical: 14,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.white,
     fontSize: 15,
     fontWeight: '600',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  error: {
+    color: Colors.error,
+    fontSize: 14,
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
@@ -164,12 +138,39 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#6b7280',
+    color: Colors.textSecondary,
     fontSize: 14,
   },
+  inner: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+  input: {
+    borderColor: Colors.border,
+    borderRadius: 10,
+    borderWidth: 1,
+    color: Colors.textPrimary,
+    fontSize: 15,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
   link: {
-    color: '#4f46e5',
+    color: Colors.brand,
     fontSize: 14,
     fontWeight: '600',
+  },
+  subtitle: {
+    color: Colors.textSecondary,
+    fontSize: 15,
+    marginBottom: 32,
+  },
+  title: {
+    color: Colors.textPrimary,
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 8,
   },
 });

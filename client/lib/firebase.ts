@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import {
   getAuth,
   initializeAuth,
-  // @ts-ignore - missing from firebase/auth root types but exported at runtime
+  // @ts-expect-error - missing from firebase/auth root types but exported at runtime
   getReactNativePersistence,
   type Auth,
 } from 'firebase/auth';
