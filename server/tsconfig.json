@@ -1,5 +1,4 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
@@ -10,8 +9,22 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
-    // Allows importing .json files (e.g. Firebase service account in dev)
+    // Interop — required for default imports (express, dotenv, etc.)
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Type checking — matches tsconfig.base.json strict settings
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+
+    // Module handling
     "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
 
     // Needed for Express decorators if you add them later
     "experimentalDecorators": true,
