@@ -8,14 +8,15 @@
     "shared"
   ],
   "scripts": {
-    "client": "npm run start --workspace=client",
+    "client": "cd client && expo start",
     "server": "npm run dev --workspace=server",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "prepare": "husky",
-    "android": "npm run android -w client",
-    "ios": "npm run ios -w client"
+    "android": "cd client && expo start --android",
+    "ios": "cd client && expo start --ios",
+    "tunnel": "cd client && expo start --tunnel --clear"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
