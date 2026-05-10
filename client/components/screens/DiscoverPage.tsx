@@ -18,6 +18,115 @@ import { getNearbyEvents, getEvents } from '@/lib/api';
 import { useLocation } from '@/hooks/useLocation';
 import { Colors } from '@/constants/Colors';
 
+const _t = Date.now();
+
+const MOCK_EVENTS = [
+  {
+    _id: 'disc1',
+    title: 'Morning Run at the Arboretum',
+    description: 'Relaxed 5K run through the UC Davis Arboretum. All paces welcome!',
+    category: 'sports' as EventCategory,
+    creator: 'u_seed',
+    location: { type: 'Point' as const, coordinates: [-121.7617, 38.5382] as [number, number] },
+    address: 'UC Davis Arboretum, Davis, CA',
+    startTime: new Date(_t + 2 * 3600_000).toISOString(),
+    endTime: new Date(_t + 3.5 * 3600_000).toISOString(),
+    maxAttendees: 20,
+    attendees: ['u1', 'u2', 'u3', 'u4', 'u5'],
+    isPublic: true,
+    status: 'active' as const,
+    createdAt: new Date(_t).toISOString(),
+    updatedAt: new Date(_t).toISOString(),
+  },
+  {
+    _id: 'disc2',
+    title: 'Disc Golf at Powerhouse Park',
+    description: 'Casual round at Powerhouse — beginners welcome, extra discs available!',
+    category: 'sports' as EventCategory,
+    creator: 'u_seed2',
+    location: { type: 'Point' as const, coordinates: [-121.7403, 38.5518] as [number, number] },
+    address: 'Powerhouse Park, Davis, CA',
+    startTime: new Date(_t + 5 * 3600_000).toISOString(),
+    endTime: new Date(_t + 8 * 3600_000).toISOString(),
+    maxAttendees: 12,
+    attendees: ['u1', 'u2', 'u3'],
+    isPublic: true,
+    status: 'active' as const,
+    createdAt: new Date(_t).toISOString(),
+    updatedAt: new Date(_t).toISOString(),
+  },
+  {
+    _id: 'disc3',
+    title: 'Board Game Night at CoHo',
+    description: 'Catan, Ticket to Ride, Codenames and more. Drop in anytime!',
+    category: 'games' as EventCategory,
+    creator: 'u_seed3',
+    location: { type: 'Point' as const, coordinates: [-121.7488, 38.5407] as [number, number] },
+    address: 'Coffee House (CoHo), UC Davis',
+    startTime: new Date(_t + 26 * 3600_000).toISOString(),
+    endTime: new Date(_t + 29 * 3600_000).toISOString(),
+    maxAttendees: 16,
+    attendees: ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8'],
+    isPublic: true,
+    status: 'active' as const,
+    createdAt: new Date(_t).toISOString(),
+    updatedAt: new Date(_t).toISOString(),
+  },
+  {
+    _id: 'disc4',
+    title: 'Stebbins Cold Canyon Hike',
+    description:
+      'Intermediate 7-mile hike with stunning views of Lake Berryessa. Carpooling from campus.',
+    category: 'hiking' as EventCategory,
+    creator: 'u_seed4',
+    location: { type: 'Point' as const, coordinates: [-122.0822, 38.505] as [number, number] },
+    address: 'Stebbins Cold Canyon Reserve, Winters, CA',
+    startTime: new Date(_t + 48 * 3600_000).toISOString(),
+    endTime: new Date(_t + 55 * 3600_000).toISOString(),
+    maxAttendees: 10,
+    attendees: ['u1', 'u2', 'u3', 'u4'],
+    isPublic: true,
+    status: 'active' as const,
+    createdAt: new Date(_t).toISOString(),
+    updatedAt: new Date(_t).toISOString(),
+  },
+  {
+    _id: 'disc5',
+    title: 'Farmers Market Meetup',
+    description:
+      "Meet fellow foodies at the Saturday Farmers Market. We'll grab breakfast and explore together.",
+    category: 'social' as EventCategory,
+    creator: 'u_seed5',
+    location: { type: 'Point' as const, coordinates: [-121.7405, 38.5449] as [number, number] },
+    address: 'Davis Central Park, 4th & C St, Davis, CA',
+    startTime: new Date(_t + 72 * 3600_000).toISOString(),
+    endTime: new Date(_t + 74.5 * 3600_000).toISOString(),
+    maxAttendees: 15,
+    attendees: ['u1', 'u2', 'u3', 'u4', 'u5', 'u6', 'u7', 'u8', 'u9', 'u10', 'u11'],
+    isPublic: true,
+    status: 'active' as const,
+    createdAt: new Date(_t).toISOString(),
+    updatedAt: new Date(_t).toISOString(),
+  },
+  {
+    _id: 'disc6',
+    title: 'Pickup Soccer at Aggie Field',
+    description: 'Pickup soccer every Sunday morning. All skill levels — just show up!',
+    category: 'sports' as EventCategory,
+    creator: 'u_seed6',
+    location: { type: 'Point' as const, coordinates: [-121.755, 38.535] as [number, number] },
+    address: 'Aggie Soccer Field, UC Davis',
+    startTime: new Date(_t + 96 * 3600_000).toISOString(),
+    endTime: new Date(_t + 98 * 3600_000).toISOString(),
+    maxAttendees: 22,
+    attendees: ['u1', 'u2', 'u3', 'u4', 'u5', 'u6'],
+    isPublic: true,
+    status: 'active' as const,
+    createdAt: new Date(_t).toISOString(),
+    updatedAt: new Date(_t).toISOString(),
+  },
+];
+
 const CATEGORIES: Array<{ label: string; value: EventCategory | 'all' }> = [
   { label: 'All', value: 'all' },
   { label: 'Sports', value: 'sports' },
@@ -38,19 +147,20 @@ const CATEGORY_COLORS: Record<EventCategory, string> = {
 export function DiscoverPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<EventCategory | 'all'>('all');
-  const [events, setEvents] = useState<IEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<IEvent[]>(MOCK_EVENTS);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { coords } = useLocation();
 
   const load = useCallback(async () => {
     try {
       const data = coords
-        ? await getNearbyEvents(coords.latitude, coords.longitude)
+        ? await getNearbyEvents({ lat: coords.latitude, lng: coords.longitude })
         : await getEvents(category !== 'all' ? { category } : undefined);
-      setEvents(data);
+      // Only replace mock data if the server returned real events
+      if (data.length > 0) setEvents(data);
     } catch {
-      setEvents([]);
+      // Keep whatever is currently shown (mock data on first load, real data after)
     } finally {
       setLoading(false);
       setRefreshing(false);

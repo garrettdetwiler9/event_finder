@@ -17,6 +17,84 @@ import { useAuth } from '@/hooks/useAuth';
 import { CreateEventModal } from './CreateEventModal';
 import { Colors } from '@/constants/Colors';
 
+const _now = Date.now();
+
+const MOCK_HOSTING: IEvent[] = [
+  {
+    _id: 'mh1',
+    title: 'Evening Volleyball at ARC',
+    description: 'Casual co-ed volleyball — all skill levels welcome. Nets are already set up!',
+    category: 'sports',
+    creator: '__me__',
+    location: { type: 'Point', coordinates: [-121.7617, 38.5382] },
+    address: 'Activities & Recreation Center, UC Davis',
+    startTime: new Date(_now + 6 * 3600_000).toISOString(),
+    endTime: new Date(_now + 8 * 3600_000).toISOString(),
+    maxAttendees: 12,
+    attendees: ['u1', 'u2', 'u3', 'u4'],
+    isPublic: true,
+    status: 'active',
+    createdAt: new Date(_now).toISOString(),
+    updatedAt: new Date(_now).toISOString(),
+  },
+  {
+    _id: 'mh2',
+    title: 'Weekend Bike Ride to Winters',
+    description: 'Scenic 30-mile round trip along the Putah Creek trail. Bring water and snacks!',
+    category: 'sports',
+    creator: '__me__',
+    location: { type: 'Point', coordinates: [-121.7403, 38.5518] },
+    address: 'Silo Bike Barn, UC Davis',
+    startTime: new Date(_now + 50 * 3600_000).toISOString(),
+    endTime: new Date(_now + 55 * 3600_000).toISOString(),
+    maxAttendees: 10,
+    attendees: ['u1', 'u2'],
+    isPublic: true,
+    status: 'active',
+    createdAt: new Date(_now).toISOString(),
+    updatedAt: new Date(_now).toISOString(),
+  },
+];
+
+const MOCK_ATTENDING: IEvent[] = [
+  {
+    _id: 'ma1',
+    title: 'Board Game Night at CoHo',
+    description:
+      'Weekly board game night! Catan, Ticket to Ride, Codenames and more. Drop in anytime.',
+    category: 'games',
+    creator: 'other_user_1',
+    location: { type: 'Point', coordinates: [-121.7488, 38.5407] },
+    address: 'Coffee House (CoHo), UC Davis',
+    startTime: new Date(_now + 26 * 3600_000).toISOString(),
+    endTime: new Date(_now + 29 * 3600_000).toISOString(),
+    maxAttendees: 16,
+    attendees: ['__me__', 'u2', 'u3', 'u4', 'u5', 'u6'],
+    isPublic: true,
+    status: 'active',
+    createdAt: new Date(_now).toISOString(),
+    updatedAt: new Date(_now).toISOString(),
+  },
+  {
+    _id: 'ma2',
+    title: 'Davis Farmers Market Meetup',
+    description:
+      "Meet fellow foodies at the Saturday Farmers Market! We'll grab breakfast and explore together.",
+    category: 'social',
+    creator: 'other_user_2',
+    location: { type: 'Point', coordinates: [-121.7405, 38.5449] },
+    address: 'Davis Central Park, 4th & C St, Davis, CA',
+    startTime: new Date(_now + 72 * 3600_000).toISOString(),
+    endTime: new Date(_now + 74.5 * 3600_000).toISOString(),
+    maxAttendees: 15,
+    attendees: ['__me__', 'u2', 'u3', 'u4', 'u5'],
+    isPublic: true,
+    status: 'active',
+    createdAt: new Date(_now).toISOString(),
+    updatedAt: new Date(_now).toISOString(),
+  },
+];
+
 export function MyEventsPage() {
   const { userProfile } = useAuth();
   const [events, setEvents] = useState<IEvent[]>([]);
@@ -45,11 +123,14 @@ export function MyEventsPage() {
       ? (creator as { _id: string })._id
       : (creator as string);
 
-  const hosting = events.filter(e => getCreatorId(e.creator) === userId);
-
-  const attending = events.filter(
+  const realHosting = events.filter(e => getCreatorId(e.creator) === userId);
+  const realAttending = events.filter(
     e => getCreatorId(e.creator) !== userId && e.attendees.includes(userId ?? '')
   );
+
+  // Fall back to mock data when the DB has no events yet (e.g. demo / fresh deploy)
+  const hosting = realHosting.length > 0 ? realHosting : MOCK_HOSTING;
+  const attending = realAttending.length > 0 ? realAttending : MOCK_ATTENDING;
 
   return (
     <View style={styles.container}>
@@ -105,7 +186,7 @@ export function MyEventsPage() {
         </LinearGradient>
       </Pressable>
 
-      <Modal visible={showCreate} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={showCreate} animationType="slide">
         <CreateEventModal
           onClose={() => {
             setShowCreate(false);

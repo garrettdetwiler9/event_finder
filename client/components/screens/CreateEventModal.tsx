@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { X, Tag, MapPin, Users, Clock, AlignLeft } from 'lucide-react-native';
-import type { EventCategory, CreateEventData } from '@shared/types';
+import type { EventCategory } from '@shared/types';
 import { createEvent } from '@/lib/api';
 import { useLocation } from '@/hooks/useLocation';
 import { Colors } from '@/constants/Colors';
@@ -25,23 +25,96 @@ interface CreateEventModalProps {
 
 const CATEGORIES: EventCategory[] = ['sports', 'social', 'hiking', 'games', 'other'];
 
-export function CreateEventModal({ onClose }: CreateEventModalProps) {
-  const [eventData, setEventData] = useState({
-    title: '',
-    category: '',
-    date: '',
-    time: '',
-    location: '',
-    description: '',
-    attendanceLimit: '',
-    isRecurring: false,
-    recurringPattern: 'weekly',
-  });
+function defaultStart() {
+  const d = new Date();
+  d.setMinutes(0, 0, 0);
+  d.setHours(d.getHours() + 1);
+  return d;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Event created successfully! 🎉');
-    onClose();
+function defaultEnd() {
+  const d = new Date();
+  d.setMinutes(0, 0, 0);
+  d.setHours(d.getHours() + 2);
+  return d;
+}
+
+export function CreateEventModal({ onClose }: CreateEventModalProps) {
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<EventCategory | ''>('');
+  const [address, setAddress] = useState('');
+  const [description, setDescription] = useState('');
+  const [maxAttendees, setMaxAttendees] = useState('');
+  const [startTime, setStartTime] = useState<Date>(defaultStart);
+  const [endTime, setEndTime] = useState<Date>(defaultEnd);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const { coords } = useLocation();
+
+  const handleStartChange = (_: DateTimePickerEvent, date?: Date) => {
+    setShowStartPicker(Platform.OS === 'ios');
+    if (date) {
+      setStartTime(date);
+      if (date >= endTime) {
+        setEndTime(new Date(date.getTime() + 60 * 60 * 1000));
+      }
+    }
+  };
+
+  const handleEndChange = (_: DateTimePickerEvent, date?: Date) => {
+    setShowEndPicker(Platform.OS === 'ios');
+    if (date) setEndTime(date);
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) {
+      Alert.alert('Missing field', 'Please enter an event title.');
+      return;
+    }
+    if (!category) {
+      Alert.alert('Missing field', 'Please select a category.');
+      return;
+    }
+    if (!address.trim()) {
+      Alert.alert('Missing field', 'Please enter an address.');
+      return;
+    }
+    const max = parseInt(maxAttendees, 10);
+    if (!max || max < 2) {
+      Alert.alert('Invalid', 'Max attendees must be at least 2.');
+      return;
+    }
+    if (endTime <= startTime) {
+      Alert.alert('Invalid', 'End time must be after start time.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await createEvent({
+        title: title.trim(),
+        category: category as EventCategory,
+        address: address.trim(),
+        description: description.trim(),
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        maxAttendees: max,
+        // Fall back to Davis, CA coordinates if location permission not granted
+        location: coords
+          ? { type: 'Point', coordinates: [coords.longitude, coords.latitude] }
+          : { type: 'Point', coordinates: [-121.7617, 38.5382] },
+        isPublic: true,
+      });
+      Alert.alert('Event Created!', 'Your event is now live.', [{ text: 'OK', onPress: onClose }]);
+    } catch (err: unknown) {
+      Alert.alert(
+        'Error',
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
