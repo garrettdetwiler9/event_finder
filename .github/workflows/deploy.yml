@@ -1,5 +1,9 @@
 name: Deploy
 
+# Railway's native GitHub integration handles deployment automatically
+# when changes are pushed to main. No separate deploy step needed here.
+# See: https://railway.app/project settings → Source → GitHub branch connection
+
 on:
   push:
     branches: [main]
@@ -15,12 +19,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy to Railway
-        run: railway up --service event-finder-server --project ${{ secrets.RAILWAY_PROJECT_ID }}
-        working-directory: server
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+      - name: Confirm deployment is handled by Railway
+        run: echo "✅ Railway auto-deploys from the connected GitHub branch. No action needed here."
