@@ -7,7 +7,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@event-finder/shared": ["../shared/types/index.ts"]
+      "@event-finder/shared": ["../shared/types/index.d.ts"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.d.ts", "nativewind-env.d.ts"],

@@ -34,7 +34,7 @@
     // relying solely on the npm workspace symlink for TypeScript resolution.
     "baseUrl": ".",
     "paths": {
-      "@event-finder/shared": ["../shared/types/index.ts"]
+      "@event-finder/shared": ["../shared/types/index.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],

@@ -5,11 +5,13 @@
     "module": "CommonJS",
     "moduleResolution": "node",
 
-    // Emit declaration files so client and server can consume shared types
+    // The shared package is hand-written as a .d.ts file (declaration file).
+    // No compilation step is needed — the .d.ts is the final artefact.
+    // These options are retained in case a build step is added later.
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist"
   },
-  "include": ["types/**/*.ts"],
+  "include": ["types/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
