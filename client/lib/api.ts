@@ -1,4 +1,7 @@
 import { auth } from '@/lib/firebase';
+import type { IUser, CreateUserData } from '@shared/types';
+
+export type { IUser, CreateUserData };
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
@@ -9,26 +12,7 @@ async function getAuthHeaders(): Promise<{ Authorization: string }> {
   return { Authorization: `Bearer ${token}` };
 }
 
-export interface UserProfile {
-  _id: string;
-  firebaseUid: string;
-  username: string;
-  displayName: string;
-  avatarUrl?: string;
-  accountType: 'user' | 'business' | 'org';
-  verified: boolean;
-  friends: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateProfileData {
-  username: string;
-  displayName: string;
-  accountType?: 'user' | 'business' | 'org';
-}
-
-export async function getMe(): Promise<UserProfile> {
+export async function getMe(): Promise<IUser> {
   const headers = await getAuthHeaders();
   const res = await fetch(`${API_URL}/users/me`, { headers });
   if (!res.ok) {
@@ -38,7 +22,7 @@ export async function getMe(): Promise<UserProfile> {
   return res.json();
 }
 
-export async function createUserProfile(data: CreateProfileData): Promise<UserProfile> {
+export async function createUserProfile(data: CreateUserData): Promise<IUser> {
   const headers = await getAuthHeaders();
   const res = await fetch(`${API_URL}/users`, {
     method: 'POST',

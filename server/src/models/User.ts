@@ -1,14 +1,11 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import type { IUser as IUserResponse } from '../../../shared/types';
 
-// TypeScript interface — describes the shape of a User document
-export interface IUser extends Document {
-  firebaseUid: string; // Links this MongoDB record to the Firebase Auth user
-  username: string;
-  displayName: string;
-  avatarUrl?: string; // Optional profile picture URL
-  accountType: 'user' | 'business' | 'org';
-  verified: boolean; // For business/org badge
-  friends: mongoose.Types.ObjectId[]; // References to other User documents
+// IUserResponse (from shared/types) is the API wire format — strings for IDs and dates.
+// IUser below is the Mongoose document type — ObjectId for refs, Date for timestamps.
+export interface IUser
+  extends Document, Omit<IUserResponse, '_id' | 'friends' | 'createdAt' | 'updatedAt'> {
+  friends: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -5,11 +5,11 @@ import {
   type User as FirebaseUser,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { getMe, type UserProfile } from '@/lib/api';
+import { getMe, type IUser } from '@/lib/api';
 
 interface AuthContextValue {
   firebaseUser: FirebaseUser | null;
-  userProfile: UserProfile | null;
+  userProfile: IUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -19,16 +19,16 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProfile, setIUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async () => {
     try {
       const profile = await getMe();
-      setUserProfile(profile);
+      setIUser(profile);
     } catch (err: any) {
       if (err.status === 404) {
-        setUserProfile(null);
+        setIUser(null);
       } else {
         console.warn('Failed to fetch user profile:', err.message);
       }
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         await fetchProfile();
       } else {
-        setUserProfile(null);
+        setIUser(null);
       }
       setLoading(false);
     });
