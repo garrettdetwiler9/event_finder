@@ -14,8 +14,8 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "prepare": "husky",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "android": "npm run android -w client",
+    "ios": "npm run ios -w client"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
