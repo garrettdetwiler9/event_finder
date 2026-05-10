@@ -1,10 +1,16 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import type { EventCategory, EventStatus } from '@event-finder/shared';
 
-// TypeScript interface — describes the shape of an Event document
+// Re-export so server-side code can use these types without a second import path.
+export type { EventCategory, EventStatus };
+
+// TypeScript interface — describes the shape of an Event document.
+// category and status use the shared enum types so this model and the client
+// are guaranteed to agree on the allowed values at compile time.
 export interface IEvent extends Document {
   title: string;
   description: string;
-  category: 'sports' | 'social' | 'hiking' | 'games' | 'other';
+  category: EventCategory;
   creator: mongoose.Types.ObjectId; // Reference to the User who created the event
   location: {
     type: 'Point';
@@ -16,7 +22,7 @@ export interface IEvent extends Document {
   maxAttendees: number;
   attendees: mongoose.Types.ObjectId[]; // References to Users who have joined
   isPublic: boolean;
-  status: 'active' | 'cancelled' | 'completed';
+  status: EventStatus;
   createdAt: Date;
   updatedAt: Date;
 }
