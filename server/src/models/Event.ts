@@ -1,22 +1,19 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import type { IEvent as IEventResponse } from '../../../shared/types';
 
-// TypeScript interface — describes the shape of an Event document
-export interface IEvent extends Document {
-  title: string;
-  description: string;
-  category: 'sports' | 'social' | 'hiking' | 'games' | 'other';
-  creator: mongoose.Types.ObjectId; // Reference to the User who created the event
-  location: {
-    type: 'Point';
-    coordinates: [number, number]; // [longitude, latitude] — GeoJSON standard order
-  };
-  address: string; // Human-readable address, e.g. "ARC, UC Davis"
+// IEventResponse (from shared/types) is the API wire format — strings for IDs and dates.
+// IEvent below is the Mongoose document type — ObjectId for refs, Date for timestamps.
+export interface IEvent
+  extends
+    Document,
+    Omit<
+      IEventResponse,
+      '_id' | 'creator' | 'attendees' | 'startTime' | 'endTime' | 'createdAt' | 'updatedAt'
+    > {
+  creator: mongoose.Types.ObjectId;
+  attendees: mongoose.Types.ObjectId[];
   startTime: Date;
   endTime: Date;
-  maxAttendees: number;
-  attendees: mongoose.Types.ObjectId[]; // References to Users who have joined
-  isPublic: boolean;
-  status: 'active' | 'cancelled' | 'completed';
   createdAt: Date;
   updatedAt: Date;
 }

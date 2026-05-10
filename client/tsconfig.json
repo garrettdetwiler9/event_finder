@@ -6,9 +6,10 @@
     "target": "ESNext",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@shared/*": ["../shared/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.d.ts", "nativewind-env.d.ts"],
-  "exclude": ["components/ui", "components/screens", "legacy-frontend"]
+  "exclude": ["components/ui", "legacy-frontend"]
 }

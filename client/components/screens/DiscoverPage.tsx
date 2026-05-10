@@ -1,267 +1,290 @@
-import { useState } from 'react';
-import { Search, Filter, MapPin, Users, Calendar, TrendingUp } from 'lucide-react';
-import { ImageWithFallback } from './ImageWithFallback';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator,
+  RefreshControl,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Search, MapPin, Users, Calendar } from 'lucide-react-native';
+import { format, parseISO } from 'date-fns';
+import type { IEvent, EventCategory } from '@shared/types';
+import { getNearbyEvents, getEvents } from '@/lib/api';
+import { useLocation } from '@/hooks/useLocation';
+import { Colors } from '@/constants/Colors';
 
-const categories = ['All', 'Sports', 'Crafts', 'Games', 'Parties', '18+', '21+', 'Music', 'Food'];
-
-const trendingEvents = [
-  {
-    id: 101,
-    title: 'Sunset Yoga Session',
-    category: 'Sports',
-    distance: '1.5 mi',
-    attendees: 45,
-    date: 'May 11, 2026',
-    image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800',
-  },
-  {
-    id: 102,
-    title: 'Street Art Walking Tour',
-    category: 'Arts',
-    distance: '0.5 mi',
-    attendees: 32,
-    date: 'May 13, 2026',
-    image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800',
-  },
-  {
-    id: 103,
-    title: 'Live Jazz Night',
-    category: 'Music',
-    distance: '2.1 mi',
-    attendees: 78,
-    date: 'May 12, 2026',
-    image: 'https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800',
-  },
-  {
-    id: 104,
-    title: 'Taco Festival',
-    category: 'Food',
-    distance: '1.8 mi',
-    attendees: 156,
-    date: 'May 15, 2026',
-    image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800',
-  },
+const CATEGORIES: Array<{ label: string; value: EventCategory | 'all' }> = [
+  { label: 'All', value: 'all' },
+  { label: 'Sports', value: 'sports' },
+  { label: 'Social', value: 'social' },
+  { label: 'Hiking', value: 'hiking' },
+  { label: 'Games', value: 'games' },
+  { label: 'Other', value: 'other' },
 ];
 
-const mockEvents = [
-  {
-    id: 1,
-    title: 'Summer Beach Volleyball Tournament',
-    category: 'Sports',
-    distance: '2.3 mi',
-    attendees: 24,
-    date: 'May 15, 2026',
-    sponsored: true,
-    image: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800',
-  },
-  {
-    id: 2,
-    title: 'Pottery & Wine Night',
-    category: 'Crafts',
-    distance: '1.1 mi',
-    attendees: 12,
-    date: 'May 12, 2026',
-    sponsored: false,
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800',
-  },
-  {
-    id: 3,
-    title: 'Board Game Cafe Meetup',
-    category: 'Games',
-    distance: '0.8 mi',
-    attendees: 18,
-    date: 'May 10, 2026',
-    sponsored: false,
-    image: 'https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=800',
-  },
-  {
-    id: 4,
-    title: 'Rooftop EDM Party',
-    category: '21+',
-    distance: '3.5 mi',
-    attendees: 150,
-    date: 'May 16, 2026',
-    sponsored: true,
-    image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800',
-  },
-  {
-    id: 5,
-    title: 'Local Food Truck Festival',
-    category: 'Food',
-    distance: '1.9 mi',
-    attendees: 200,
-    date: 'May 14, 2026',
-    sponsored: true,
-    image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800',
-  },
-];
+const CATEGORY_COLORS: Record<EventCategory, string> = {
+  sports: '#3b82f6',
+  social: '#8b5cf6',
+  hiking: '#10b981',
+  games: '#f59e0b',
+  other: '#6b7280',
+};
 
 export function DiscoverPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [showFilters, setShowFilters] = useState(false);
-  const [maxDistance, setMaxDistance] = useState(10);
-  const [sponsoredOnly, setSponsoredOnly] = useState(false);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<EventCategory | 'all'>('all');
+  const [events, setEvents] = useState<IEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { coords } = useLocation();
+
+  const load = useCallback(async () => {
+    try {
+      const data = coords
+        ? await getNearbyEvents(coords.latitude, coords.longitude)
+        : await getEvents(category !== 'all' ? { category } : undefined);
+      setEvents(data);
+    } catch {
+      setEvents([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [coords, category]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const displayed = events.filter(e => {
+    const matchesSearch = !search || e.title.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = category === 'all' || e.category === category;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-full">
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white p-5 pb-6">
-        <h1 className="text-2xl font-bold mb-3">Discover Events</h1>
-
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search for events..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm"
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#9333ea', '#ec4899', '#f97316']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
+        <Text style={styles.headerTitle}>Discover Events</Text>
+        <View style={styles.searchBar}>
+          <Search size={16} color={Colors.textPlaceholder} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search events…"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={search}
+            onChangeText={setSearch}
           />
-        </div>
+        </View>
+      </LinearGradient>
 
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
-        >
-          <Filter className="w-4 h-4" />
-          <span>Filters</span>
-        </button>
-      </div>
-
-      {showFilters && (
-        <div className="bg-white border-b border-gray-200 p-4 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Max Distance: {maxDistance} miles
-            </label>
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={maxDistance}
-              onChange={e => setMaxDistance(Number(e.target.value))}
-              className="w-full"
-            />
-          </div>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={sponsoredOnly}
-              onChange={e => setSponsoredOnly(e.target.checked)}
-              className="w-4 h-4 text-purple-600 rounded"
-            />
-            <span className="text-sm text-gray-700">Sponsored events only</span>
-          </label>
-        </div>
-      )}
-
-      <div className="overflow-x-auto px-5 py-3 bg-white border-b border-gray-200">
-        <div className="flex gap-2">
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                selectedCategory === category
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="py-4 bg-gradient-to-r from-purple-50 to-pink-50">
-        <div className="px-5 mb-3">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-orange-600" />
-            Trending Now
-          </h2>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-2 px-5 scrollbar-hide">
-          {trendingEvents.map(event => (
-            <div
-              key={event.id}
-              className="flex-shrink-0 w-56 bg-white rounded-2xl shadow-lg overflow-hidden active:shadow-xl transition-shadow"
-            >
-              <div className="relative h-32">
-                <ImageWithFallback
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-full object-cover"
-                />
-                <span className="absolute top-2 left-2 bg-orange-600 text-white px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  Hot
-                </span>
-              </div>
-              <div className="p-3">
-                <h3 className="font-bold text-sm text-gray-900 mb-2 line-clamp-1">{event.title}</h3>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-orange-600" />
-                    <span>{event.date}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-purple-600" />
-                      <span>{event.distance}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3 h-3 text-pink-600" />
-                      <span>{event.attendees}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="p-5 space-y-4">
-        {mockEvents.map(event => (
-          <div
-            key={event.id}
-            className="bg-white rounded-2xl shadow-lg overflow-hidden active:shadow-xl transition-shadow"
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryBar}
+        contentContainerStyle={styles.categoryContent}
+      >
+        {CATEGORIES.map(cat => (
+          <Pressable
+            key={cat.value}
+            onPress={() => setCategory(cat.value)}
+            style={[styles.chip, category === cat.value && styles.chipActive]}
           >
-            <div className="relative h-44">
-              <ImageWithFallback
-                src={event.image}
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
-              {event.sponsored && (
-                <span className="absolute top-3 right-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                  Sponsored
-                </span>
-              )}
-              <span className="absolute top-3 left-3 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                {event.category}
-              </span>
-            </div>
-            <div className="p-4">
-              <h3 className="font-bold text-lg text-gray-900 mb-2">{event.title}</h3>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-purple-600" />
-                  <span>{event.distance}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4 text-pink-600" />
-                  <span>{event.attendees} attending</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4 text-orange-600" />
-                  <span>{event.date}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+            <Text style={[styles.chipText, category === cat.value && styles.chipTextActive]}>
+              {cat.label}
+            </Text>
+          </Pressable>
         ))}
-      </div>
-    </div>
+      </ScrollView>
+
+      {loading ? (
+        <ActivityIndicator style={styles.loader} color={Colors.primary} size="large" />
+      ) : (
+        <FlatList
+          data={displayed}
+          keyExtractor={e => e._id}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                load();
+              }}
+              tintColor={Colors.primary}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <MapPin size={48} color={Colors.border} />
+              <Text style={styles.emptyText}>No events found nearby.</Text>
+              <Text style={styles.emptySubtext}>Try a different category or check back later.</Text>
+            </View>
+          }
+          renderItem={({ item }) => <EventCard event={item} />}
+        />
+      )}
+    </View>
   );
 }
+
+function EventCard({ event }: { event: IEvent }) {
+  const startDate = format(parseISO(event.startTime), 'MMM d');
+  const startTime = format(parseISO(event.startTime), 'h:mm a');
+  const spotsLeft = event.maxAttendees - event.attendees.length;
+  const isFull = spotsLeft <= 0;
+  const categoryColor = CATEGORY_COLORS[event.category] ?? Colors.textSecondary;
+
+  return (
+    <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
+      <View style={styles.cardTopRow}>
+        <View style={[styles.categoryBadge, { backgroundColor: `${categoryColor}18` }]}>
+          <Text style={[styles.categoryBadgeText, { color: categoryColor }]}>{event.category}</Text>
+        </View>
+        {isFull && (
+          <View style={styles.fullBadge}>
+            <Text style={styles.fullBadgeText}>Full</Text>
+          </View>
+        )}
+        {!event.isPublic && (
+          <View style={styles.privateBadge}>
+            <Text style={styles.privateBadgeText}>Private</Text>
+          </View>
+        )}
+      </View>
+
+      <Text style={styles.cardTitle} numberOfLines={2}>
+        {event.title}
+      </Text>
+
+      <View style={styles.metaItem}>
+        <MapPin size={13} color={Colors.primary} />
+        <Text style={styles.metaText} numberOfLines={1}>
+          {event.address}
+        </Text>
+      </View>
+
+      <View style={styles.metaRow}>
+        <View style={styles.metaItem}>
+          <Calendar size={13} color="#f97316" />
+          <Text style={styles.metaText}>
+            {startDate} · {startTime}
+          </Text>
+        </View>
+        <View style={styles.metaItem}>
+          <Users size={13} color={Colors.secondary} />
+          <Text style={[styles.metaText, isFull && styles.metaTextFull]}>
+            {event.attendees.length}/{event.maxAttendees}
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    elevation: 3,
+    marginBottom: 12,
+    padding: 16,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+  },
+  cardPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+  cardTitle: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 10,
+    marginTop: 8,
+  },
+  cardTopRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  categoryBadge: {
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  categoryBadgeText: { fontSize: 12, fontWeight: '600', textTransform: 'capitalize' },
+  categoryBar: {
+    backgroundColor: Colors.white,
+    borderBottomColor: Colors.border,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    maxHeight: 56,
+  },
+  categoryContent: {
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  chip: {
+    borderColor: Colors.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipText: { color: Colors.textSecondary, fontSize: 14, fontWeight: '500' },
+  chipTextActive: { color: Colors.white },
+  container: { backgroundColor: Colors.backgroundMuted, flex: 1 },
+  emptyState: { alignItems: 'center', gap: 8, paddingTop: 60 },
+  emptySubtext: { color: Colors.textSecondary, fontSize: 14 },
+  emptyText: { color: Colors.textPrimary, fontSize: 16, fontWeight: '600' },
+  fullBadge: {
+    backgroundColor: Colors.errorLight,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  fullBadgeText: { color: Colors.error, fontSize: 12, fontWeight: '600' },
+  header: { paddingBottom: 20, paddingHorizontal: 20, paddingTop: 56 },
+  headerTitle: { color: Colors.white, fontSize: 26, fontWeight: '700', marginBottom: 12 },
+  list: { padding: 16, paddingBottom: 32 },
+  loader: { flex: 1, marginTop: 60 },
+  metaItem: { alignItems: 'center', flexDirection: 'row', flex: 1, gap: 5 },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 6,
+  },
+  metaText: { color: Colors.textSecondary, flex: 1, fontSize: 13 },
+  metaTextFull: { color: Colors.error },
+  privateBadge: {
+    backgroundColor: Colors.backgroundSubtle,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  privateBadgeText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
+  searchBar: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  searchInput: { color: Colors.textPrimary, flex: 1, fontSize: 15 },
+});

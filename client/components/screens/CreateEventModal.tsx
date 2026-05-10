@@ -1,11 +1,29 @@
 import { useState } from 'react';
-import { Calendar, Users, MapPin, Tag, Clock, RepeatIcon, X } from 'lucide-react';
-
-const categories = ['Sports', 'Crafts', 'Games', 'Parties', '18+', '21+', 'Music', 'Food', 'Other'];
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  Platform,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { X, Tag, MapPin, Users, Clock, AlignLeft } from 'lucide-react-native';
+import type { EventCategory, CreateEventData } from '@shared/types';
+import { createEvent } from '@/lib/api';
+import { useLocation } from '@/hooks/useLocation';
+import { Colors } from '@/constants/Colors';
+import { format } from 'date-fns';
 
 interface CreateEventModalProps {
   onClose: () => void;
 }
+
+const CATEGORIES: EventCategory[] = ['sports', 'social', 'hiking', 'games', 'other'];
 
 export function CreateEventModal({ onClose }: CreateEventModalProps) {
   const [eventData, setEventData] = useState({
@@ -27,163 +45,245 @@ export function CreateEventModal({ onClose }: CreateEventModalProps) {
   };
 
   return (
-    <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-h-[85vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white p-5 flex items-center justify-between rounded-t-3xl">
-          <h2 className="text-xl font-bold">Create Event</h2>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-white/20 rounded-full transition-colors"
-            aria-label="Close"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#9333ea', '#ec4899', '#f97316']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}
+      >
+        <Text style={styles.headerTitle}>Create Event</Text>
+        <Pressable onPress={onClose} style={styles.closeBtn} hitSlop={8}>
+          <X size={22} color={Colors.white} />
+        </Pressable>
+      </LinearGradient>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Tag className="w-4 h-4 text-purple-600" />
-              Event Title
-            </label>
-            <input
-              type="text"
-              value={eventData.title}
-              onChange={e => setEventData({ ...eventData, title: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              placeholder="e.g., Summer Beach Party"
-              required
-            />
-          </div>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Title */}
+        <Field label="Event Title" icon={<Tag size={16} color={Colors.primary} />}>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. Morning Run at the Park"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={title}
+            onChangeText={setTitle}
+            maxLength={100}
+          />
+        </Field>
 
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Tag className="w-4 h-4 text-pink-600" />
-              Category
-            </label>
-            <select
-              value={eventData.category}
-              onChange={e => setEventData({ ...eventData, category: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              required
-            >
-              <option value="">Select a category</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="w-4 h-4 text-orange-600" />
-                Date
-              </label>
-              <input
-                type="date"
-                value={eventData.date}
-                onChange={e => setEventData({ ...eventData, date: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                required
-              />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Clock className="w-4 h-4 text-orange-600" />
-                Time
-              </label>
-              <input
-                type="time"
-                value={eventData.time}
-                onChange={e => setEventData({ ...eventData, time: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <MapPin className="w-4 h-4 text-purple-600" />
-              Location
-            </label>
-            <input
-              type="text"
-              value={eventData.location}
-              onChange={e => setEventData({ ...eventData, location: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              placeholder="e.g., Central Park, New York"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              <Users className="w-4 h-4 text-pink-600" />
-              Attendance Limit (optional)
-            </label>
-            <input
-              type="number"
-              value={eventData.attendanceLimit}
-              onChange={e => setEventData({ ...eventData, attendanceLimit: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-              placeholder="e.g., 50"
-              min="1"
-            />
-          </div>
-
-          <div>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={eventData.isRecurring}
-                onChange={e => setEventData({ ...eventData, isRecurring: e.target.checked })}
-                className="w-5 h-5 text-purple-600 rounded"
-              />
-              <div className="flex items-center gap-2">
-                <RepeatIcon className="w-4 h-4 text-purple-600" />
-                <span className="text-sm font-medium text-gray-700">Recurring event</span>
-              </div>
-            </label>
-          </div>
-
-          {eventData.isRecurring && (
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Repeat pattern</label>
-              <select
-                value={eventData.recurringPattern}
-                onChange={e => setEventData({ ...eventData, recurringPattern: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+        {/* Category */}
+        <View style={styles.fieldGroup}>
+          <View style={styles.fieldLabel}>
+            <Tag size={16} color={Colors.secondary} />
+            <Text style={styles.fieldLabelText}>Category</Text>
+          </View>
+          <View style={styles.categoryRow}>
+            {CATEGORIES.map(cat => (
+              <Pressable
+                key={cat}
+                onPress={() => setCategory(cat)}
+                style={[styles.categoryChip, category === cat && styles.categoryChipActive]}
               >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-          )}
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    category === cat && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Description</label>
-            <textarea
-              value={eventData.description}
-              onChange={e => setEventData({ ...eventData, description: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-24 text-sm"
-              placeholder="Tell people what to expect..."
-              required
+        {/* Address */}
+        <Field label="Address" icon={<MapPin size={16} color="#f97316" />}>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. ARC, UC Davis"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={address}
+            onChangeText={setAddress}
+          />
+        </Field>
+
+        {/* Start time */}
+        <View style={styles.fieldGroup}>
+          <View style={styles.fieldLabel}>
+            <Clock size={16} color={Colors.primary} />
+            <Text style={styles.fieldLabelText}>Start Time</Text>
+          </View>
+          <Pressable style={styles.dateBtn} onPress={() => setShowStartPicker(true)}>
+            <Text style={styles.dateBtnText}>{format(startTime, 'MMM d, yyyy · h:mm a')}</Text>
+          </Pressable>
+          {showStartPicker && (
+            <DateTimePicker
+              value={startTime}
+              mode="datetime"
+              display={Platform.OS === 'ios' ? 'inline' : 'default'}
+              onChange={handleStartChange}
+              minimumDate={new Date()}
             />
-          </div>
+          )}
+        </View>
 
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-xl font-semibold active:from-purple-700 active:to-pink-700 transition-all shadow-lg active:shadow-xl"
+        {/* End time */}
+        <View style={styles.fieldGroup}>
+          <View style={styles.fieldLabel}>
+            <Clock size={16} color={Colors.secondary} />
+            <Text style={styles.fieldLabelText}>End Time</Text>
+          </View>
+          <Pressable style={styles.dateBtn} onPress={() => setShowEndPicker(true)}>
+            <Text style={styles.dateBtnText}>{format(endTime, 'MMM d, yyyy · h:mm a')}</Text>
+          </Pressable>
+          {showEndPicker && (
+            <DateTimePicker
+              value={endTime}
+              mode="datetime"
+              display={Platform.OS === 'ios' ? 'inline' : 'default'}
+              onChange={handleEndChange}
+              minimumDate={startTime}
+            />
+          )}
+        </View>
+
+        {/* Max Attendees */}
+        <Field label="Max Attendees" icon={<Users size={16} color={Colors.secondary} />}>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. 20"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={maxAttendees}
+            onChangeText={setMaxAttendees}
+            keyboardType="number-pad"
+          />
+        </Field>
+
+        {/* Description */}
+        <Field label="Description" icon={<AlignLeft size={16} color="#f97316" />}>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Tell people what to expect…"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={4}
+            maxLength={1000}
+          />
+        </Field>
+
+        <Pressable
+          style={({ pressed }) => [styles.submitBtn, pressed && styles.submitBtnPressed]}
+          onPress={handleSubmit}
+          disabled={submitting}
+        >
+          <LinearGradient
+            colors={['#9333ea', '#ec4899']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.submitGradient}
           >
-            Create Event
-          </button>
-        </form>
-      </div>
-    </div>
+            {submitting ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <Text style={styles.submitText}>Create Event</Text>
+            )}
+          </LinearGradient>
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
+
+function Field({
+  label,
+  icon,
+  children,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.fieldGroup}>
+      <View style={styles.fieldLabel}>
+        {icon}
+        <Text style={styles.fieldLabelText}>{label}</Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  categoryChip: {
+    borderColor: Colors.border,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  categoryChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  categoryChipText: { color: Colors.textSecondary, fontSize: 14, textTransform: 'capitalize' },
+  categoryChipTextActive: { color: Colors.white, fontWeight: '600' },
+  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  closeBtn: {
+    alignItems: 'center',
+    backgroundColor: Colors.whiteAlpha20,
+    borderRadius: 20,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  container: { backgroundColor: Colors.white, flex: 1 },
+  dateBtn: {
+    backgroundColor: Colors.backgroundMuted,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  dateBtnText: { color: Colors.textPrimary, fontSize: 15 },
+  fieldGroup: { marginBottom: 20 },
+  fieldLabel: { alignItems: 'center', flexDirection: 'row', gap: 8, marginBottom: 8 },
+  fieldLabelText: { color: Colors.textPrimary, fontSize: 14, fontWeight: '600' },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  headerTitle: { color: Colors.white, fontSize: 20, fontWeight: '700' },
+  input: {
+    backgroundColor: Colors.backgroundMuted,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    color: Colors.textPrimary,
+    fontSize: 15,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 20, paddingBottom: 40 },
+  submitBtn: { marginTop: 8 },
+  submitBtnPressed: { opacity: 0.85 },
+  submitGradient: {
+    alignItems: 'center',
+    borderRadius: 14,
+    height: 52,
+    justifyContent: 'center',
+  },
+  submitText: { color: Colors.white, fontSize: 16, fontWeight: '700' },
+  textArea: { height: 120, paddingTop: 12, textAlignVertical: 'top' },
+});
