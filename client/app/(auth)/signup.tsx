@@ -40,10 +40,11 @@ export default function SignupScreen() {
       await createUserWithEmailAndPassword(auth, email, password);
       router.replace('/(tabs)');
     } catch (e: any) {
+      console.log('signup error:', e.code, e.message);
       if (e.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.');
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(`${e.code ?? 'unknown'}: ${e.message ?? 'Please try again.'}`);
       }
     } finally {
       setLoading(false);
