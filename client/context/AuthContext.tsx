@@ -19,7 +19,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
-  const [userProfile, setIUser] = useState<IUser | null>(null);
+  const [userProfile, setUserProfile] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async () => {
@@ -30,7 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (err instanceof Error && (err as Error & { status?: number }).status === 404) {
         setUserProfile(null);
       } else {
-        console.warn('Failed to fetch user profile:', err instanceof Error ? err.message : String(err));
+        console.warn(
+          'Failed to fetch user profile:',
+          err instanceof Error ? err.message : String(err)
+        );
       }
     }
   }, []);
@@ -41,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         await fetchProfile();
       } else {
-        setIUser(null);
+        setUserProfile(null);
       }
       setLoading(false);
     });
