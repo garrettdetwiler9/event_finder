@@ -16,7 +16,8 @@
     "prepare": "husky",
     "android": "cd client && expo start --android",
     "ios": "cd client && expo start --ios",
-    "tunnel": "cd client && expo start --tunnel --clear"
+    "tunnel": "cd client && expo start --tunnel",
+    "tunnel:clean": "cd client && expo start --tunnel --clear"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
