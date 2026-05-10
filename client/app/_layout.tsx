@@ -30,7 +30,7 @@ export default function RootLayout() {
   if (!ready) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color={Colors.indigo} />
+        <ActivityIndicator size="large" color={Colors.brand} />
       </View>
     );
   }
