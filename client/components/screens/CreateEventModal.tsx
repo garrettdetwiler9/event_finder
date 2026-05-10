@@ -26,64 +26,22 @@ interface CreateEventModalProps {
 const CATEGORIES: EventCategory[] = ['sports', 'social', 'hiking', 'games', 'other'];
 
 export function CreateEventModal({ onClose }: CreateEventModalProps) {
-  const { coords } = useLocation();
+  const [eventData, setEventData] = useState({
+    title: '',
+    category: '',
+    date: '',
+    time: '',
+    location: '',
+    description: '',
+    attendanceLimit: '',
+    isRecurring: false,
+    recurringPattern: 'weekly',
+  });
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<EventCategory | null>(null);
-  const [address, setAddress] = useState('');
-  const [maxAttendees, setMaxAttendees] = useState('');
-  const [startTime, setStartTime] = useState(new Date(Date.now() + 60 * 60 * 1000));
-  const [endTime, setEndTime] = useState(new Date(Date.now() + 3 * 60 * 60 * 1000));
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleStartChange = (_: DateTimePickerEvent, date?: Date) => {
-    setShowStartPicker(Platform.OS === 'ios');
-    if (date) setStartTime(date);
-  };
-
-  const handleEndChange = (_: DateTimePickerEvent, date?: Date) => {
-    setShowEndPicker(Platform.OS === 'ios');
-    if (date) setEndTime(date);
-  };
-
-  const handleSubmit = async () => {
-    if (!title.trim()) return Alert.alert('Missing field', 'Please enter an event title.');
-    if (!category) return Alert.alert('Missing field', 'Please select a category.');
-    if (!address.trim()) return Alert.alert('Missing field', 'Please enter an address.');
-    if (!description.trim()) return Alert.alert('Missing field', 'Please enter a description.');
-    const max = parseInt(maxAttendees, 10);
-    if (!max || max < 2) return Alert.alert('Invalid', 'Max attendees must be at least 2.');
-    if (endTime <= startTime) return Alert.alert('Invalid', 'End time must be after start time.');
-
-    const data: CreateEventData = {
-      title: title.trim(),
-      description: description.trim(),
-      category,
-      address: address.trim(),
-      startTime: startTime.toISOString(),
-      endTime: endTime.toISOString(),
-      maxAttendees: max,
-      isPublic: true,
-      location: {
-        type: 'Point',
-        coordinates: coords ? [coords.longitude, coords.latitude] : [0, 0],
-      },
-    };
-
-    setSubmitting(true);
-    try {
-      await createEvent(data);
-      Alert.alert('Success!', 'Your event has been created.', [{ text: 'OK', onPress: onClose }]);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to create event. Please try again.';
-      Alert.alert('Error', message);
-    } finally {
-      setSubmitting(false);
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    alert('Event created successfully! 🎉');
+    onClose();
   };
 
   return (

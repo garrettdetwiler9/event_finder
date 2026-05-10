@@ -18,7 +18,6 @@ export function CreatePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Event created:', eventData);
     alert('Event created successfully! 🎉');
   };
 

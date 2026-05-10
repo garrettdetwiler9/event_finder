@@ -31,8 +31,8 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     res.status(201).json(user);
-  } catch (err: any) {
-    if (err.code === 11000) {
+  } catch (err: unknown) {
+    if (err instanceof Error && (err as Error & { code?: number }).code === 11000) {
       // Mongoose duplicate key — username is already taken
       res.status(409).json({ error: 'Username is already taken' });
       return;
@@ -119,6 +119,7 @@ router.post('/me/friends/:friendId', authenticate, async (req, res) => {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     currentUser.friends.push(friendId as any);
     await currentUser.save();
     res.json({ message: 'Friend added' });

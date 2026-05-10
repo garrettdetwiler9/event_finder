@@ -26,6 +26,7 @@ app.use('/events', eventRouter);
 // If the DB connection fails, connectDB() calls process.exit(1) — server won't start
 connectDB().then(() => {
   app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
     console.log(`🚀 Server running on port ${PORT}`);
   });
 });

@@ -11,8 +11,10 @@ const connectDB = async (): Promise<void> => {
 
     await mongoose.connect(mongoUri);
 
+    // eslint-disable-next-line no-console
     console.log('✅ MongoDB connected successfully');
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('❌ MongoDB connection failed:', error);
     process.exit(1); // Stop the server — there's no point running without a DB connection
   }
