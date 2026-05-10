@@ -1,6 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
+import './config/firebase'; // Initialize Firebase Admin SDK on startup
+import userRouter from './routes/users';
+import eventRouter from './routes/events';
 
 dotenv.config();
 
@@ -14,6 +17,10 @@ app.use(express.json());
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
+
+// API routes
+app.use('/users', userRouter);
+app.use('/events', eventRouter);
 
 // Connect to MongoDB Atlas then start the server
 // If the DB connection fails, connectDB() calls process.exit(1) — server won't start
