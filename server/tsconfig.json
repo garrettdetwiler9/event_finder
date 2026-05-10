@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "lib": ["ES2022"],
+
+    // Input / output
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Allows importing .json files (e.g. Firebase service account in dev)
+    "resolveJsonModule": true,
+
+    // Needed for Express decorators if you add them later
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

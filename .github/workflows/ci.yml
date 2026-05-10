@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Type check server
+        run: npx tsc --noEmit
+        working-directory: server
+
+      - name: Type check client
+        # Only runs once the client workspace is scaffolded (client/package.json exists).
+        # This prevents CI failures while the frontend is still being set up.
+        run: |
+          if [ -f "client/package.json" ]; then
+            cd client && npx tsc --noEmit
+          else
+            echo "⚠️  client/package.json not found — skipping client type check"
+          fi

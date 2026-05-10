@@ -1,16 +1,16 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": ["expo/tsconfig.base", "../tsconfig.base.json"],
   "compilerOptions": {
-    "strict": true,
+    // Expo Router requires bundler module resolution
+    "moduleResolution": "bundler",
+    "jsx": "react-native",
+    "target": "ESNext",
+
+    // Path alias — lets you import from @/components instead of ../../components
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.d.ts", "expo-env.d.ts"]
 }
