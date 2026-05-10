@@ -1,44 +1,32 @@
 import admin from 'firebase-admin';
 
-// Parses the Firebase private key from an environment variable robustly.
+// We store the entire Firebase service account JSON as a base64-encoded string
+// in a single Railway environment variable (FIREBASE_SERVICE_ACCOUNT_BASE64).
 //
-// Railway (and similar platforms) can store multiline values in several formats:
-//   1. JSON-encoded string: "-----BEGIN RSA PRIVATE KEY-----\n..."
-//      → JSON.parse() correctly decodes the escaped newlines
-//   2. Raw string with literal \n characters: -----BEGIN...\n-----END...
-//      → manual replace handles this
-//   3. Raw string with real newlines (already correct)
-//      → JSON.parse fails safely, replace is a no-op, key is used as-is
-function parsePrivateKey(raw: string): string {
-  try {
-    // If Railway JSON-encoded the value (e.g. copied directly from the service account JSON),
-    // JSON.parse will correctly handle all the escape sequences including \n.
-    const parsed = JSON.parse(raw);
-    if (typeof parsed === 'string') return parsed;
-  } catch {
-    // Not JSON-encoded — fall through to manual replacement
-  }
-  // Handle literal \n sequences that Railway sometimes introduces
-  return raw.replace(/\\n/g, '\n');
-}
+// This avoids all the multiline / newline-escaping issues that Railway introduces
+// when storing the private key directly as a string.
+//
+// To generate the value locally:
+//   Mac/Linux: base64 -i service-account.json | tr -d '\n'
+//   Windows:   [Convert]::ToBase64String([IO.File]::ReadAllBytes("service-account.json"))
+//
+// Paste the output into Railway as FIREBASE_SERVICE_ACCOUNT_BASE64.
 
 // Only initialize once — prevents errors if this module is imported multiple times
 if (!admin.apps.length) {
-  const rawPrivateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const encoded = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
 
-  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !rawPrivateKey) {
+  if (!encoded) {
     throw new Error(
-      'Missing Firebase Admin environment variables. ' +
-        'Ensure FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY are set.'
+      'Missing FIREBASE_SERVICE_ACCOUNT_BASE64 environment variable. ' +
+        'Base64-encode your Firebase service account JSON and set it in Railway.'
     );
   }
 
+  const serviceAccount = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'));
+
   admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: parsePrivateKey(rawPrivateKey),
-    }),
+    credential: admin.credential.cert(serviceAccount),
   });
 }
 
