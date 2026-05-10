@@ -28,14 +28,7 @@
 
     // Needed for Express decorators if you add them later
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-
-    // Path alias — lets the server import from @event-finder/shared without
-    // relying solely on the npm workspace symlink for TypeScript resolution.
-    "baseUrl": ".",
-    "paths": {
-      "@event-finder/shared": ["../shared/types/index.d.ts"]
-    }
+    "emitDecoratorMetadata": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

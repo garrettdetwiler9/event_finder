@@ -1,18 +1,15 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import type { AccountType } from '@event-finder/shared';
-
-// Re-export so server-side code can use this type without a second import path.
-export type { AccountType };
 
 // TypeScript interface — describes the shape of a User document.
-// accountType uses the shared enum type so this model and the client
-// are guaranteed to agree on the allowed values at compile time.
+// Note: the canonical definition of AccountType lives in shared/types/index.d.ts.
+// The inline literal here is intentional — Railway builds the server in isolation
+// (rootDirectory: server/) so the shared/ directory is not available at build time.
 export interface IUser extends Document {
   firebaseUid: string; // Links this MongoDB record to the Firebase Auth user
   username: string;
   displayName: string;
   avatarUrl?: string; // Optional profile picture URL
-  accountType: AccountType;
+  accountType: 'user' | 'business' | 'org';
   verified: boolean; // For business/org badge
   friends: mongoose.Types.ObjectId[]; // References to other User documents
   createdAt: Date;
