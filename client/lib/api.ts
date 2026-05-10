@@ -107,11 +107,7 @@ export interface GetNearbyEventsParams {
 
 export async function getMe(): Promise<UserProfile> {
   const headers = await getAuthHeaders();
-  const res = await fetch(`${API_URL}/events`, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
+  const res = await fetch(`${API_URL}/users/me`, { headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw apiError(body, 'Failed to fetch profile', res.status);
@@ -141,24 +137,6 @@ export async function getUserById(userId: string): Promise<UserProfile> {
     throw apiError(body, 'Failed to fetch user', res.status);
   }
   return res.json();
-}
-
-export async function joinEvent(eventId: string): Promise<void> {
-  const headers = await getAuthHeaders();
-  const res = await fetch(`${API_URL}/events/${eventId}/join`, { method: 'POST', headers });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(body.error ?? 'Failed to join event'), { status: res.status });
-  }
-}
-
-export async function leaveEvent(eventId: string): Promise<void> {
-  const headers = await getAuthHeaders();
-  const res = await fetch(`${API_URL}/events/${eventId}/leave`, { method: 'DELETE', headers });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(body.error ?? 'Failed to leave event'), { status: res.status });
-  }
 }
 
 export async function createUserProfile(data: CreateUserData): Promise<IUser> {
@@ -282,7 +260,9 @@ export async function deleteEvent(eventId: string): Promise<void> {
   }
 }
 
-export async function joinEvent(eventId: string): Promise<{ message: string; attendeeCount: number }> {
+export async function joinEvent(
+  eventId: string
+): Promise<{ message: string; attendeeCount: number }> {
   const headers = await getAuthHeaders();
   const res = await fetch(`${API_URL}/events/${eventId}/join`, {
     method: 'POST',
@@ -295,7 +275,9 @@ export async function joinEvent(eventId: string): Promise<{ message: string; att
   return res.json();
 }
 
-export async function leaveEvent(eventId: string): Promise<{ message: string; attendeeCount: number }> {
+export async function leaveEvent(
+  eventId: string
+): Promise<{ message: string; attendeeCount: number }> {
   const headers = await getAuthHeaders();
   const res = await fetch(`${API_URL}/events/${eventId}/leave`, {
     method: 'DELETE',
