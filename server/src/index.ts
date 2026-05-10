@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
+import './config/firebase'; // Initialize Firebase Admin SDK on startup
 
 dotenv.config();
 
