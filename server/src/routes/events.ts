@@ -43,7 +43,7 @@ router.get('/nearby', async (req, res) => {
 // Query params: category (sports|social|hiking|games|other), status (default: active)
 router.get('/', async (req, res) => {
   const { category, status = 'active' } = req.query;
-  const filter: Record<string, any> = { status };
+  const filter: Record<string, unknown> = { status };
   if (category) filter.category = category;
 
   try {
@@ -114,8 +114,8 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     res.status(201).json(event);
-  } catch (err: any) {
-    if (err.name === 'ValidationError') {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'ValidationError') {
       res.status(400).json({ error: err.message });
       return;
     }
@@ -155,6 +155,7 @@ router.patch('/:id', authenticate, async (req, res) => {
       'status',
     ];
     allowed.forEach(field => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (req.body[field] !== undefined) (event as any)[field] = req.body[field];
     });
 
@@ -218,6 +219,7 @@ router.post('/:id/join', authenticate, async (req, res) => {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     event.attendees.push(user._id as any);
     await event.save();
     res.json({ message: 'Joined event', attendeeCount: event.attendees.length });
