@@ -1,33 +1,26 @@
 import '../global.css';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Stack, router } from 'expo-router';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { AuthProvider } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
-export default function RootLayout() {
-  const [ready, setReady] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setLoggedIn(!!user);
-      setReady(true);
-    });
-    return unsubscribe;
-  }, []);
+function RootNavigator() {
+  const { firebaseUser, userProfile, loading } = useAuth();
 
   useEffect(() => {
-    if (!ready) return;
-    if (loggedIn) {
-      router.replace('/discover');
-    } else {
+    if (loading) return;
+    if (!firebaseUser) {
       router.replace('/(auth)/login');
+    } else if (!userProfile) {
+      router.replace('/onboarding');
+    } else {
+      router.replace('/discover');
     }
-  }, [ready, loggedIn]);
+  }, [loading, firebaseUser, userProfile]);
 
-  if (!ready) {
+  if (loading) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color={Colors.brand} />
@@ -35,7 +28,19 @@ export default function RootLayout() {
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootNavigator />
+    </AuthProvider>
+  );
 }
 
 const styles = StyleSheet.create({

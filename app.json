@@ -1,5 +1,23 @@
 {
   "android": {
     "package": "com.anonymous.eventfinder"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "0dcfe7de-d36c-407e-8899-f64e870acc7c"
+    }
+  },
+  "expo": {
+    "ios": {
+      "bundleIdentifier": "com.anonymous.eventfinder",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0dcfe7de-d36c-407e-8899-f64e870acc7c"
+      }
+    }
   }
 }

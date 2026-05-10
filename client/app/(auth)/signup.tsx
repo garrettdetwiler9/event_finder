@@ -10,7 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { auth } from '@/lib/firebase';
@@ -40,7 +40,6 @@ export default function SignupScreen() {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      router.replace('/(tabs)');
     } catch (e) {
       if (e instanceof FirebaseError && e.code === 'auth/email-already-in-use') {
         setError('An account with this email already exists.');
