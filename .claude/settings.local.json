@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\\\\client\" -Recurse -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -First 50)",
+      "WebFetch(domain:expo.dev)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.expo.dev)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\garre\\\\Repos\\\\event_finder\\\\client\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(git -C \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\" status)",
+      "Bash(git -C \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\" diff)",
+      "Bash(git -C \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\" log --oneline -5)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\\\\client\\\\app\\\\package.json\" -Force)",
+      "Bash(../node_modules/.bin/expo install *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\garre\\\\Repos\\\\event_finder\\\\client\\\\app\" -Recurse -File)",
+      "Bash(git -C /c/Users/garre/Repos/event_finder diff --staged --stat)",
+      "Bash(npx eslint *)"
+    ]
+  }
+}
