@@ -15,6 +15,16 @@
         "backgroundColor": "#ffffff"
       }
     },
-    "plugins": ["expo-router", "@react-native-community/datetimepicker"]
+    "plugins": [
+      "expo-router",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Event Finder uses your location to show nearby events.",
+          "locationWhenInUsePermission": "Event Finder uses your location to show nearby events."
+        }
+      ]
+    ]
   }
 }
